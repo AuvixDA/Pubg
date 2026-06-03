@@ -617,7 +617,7 @@
 
           <div class="field">
             <label>Возраст <span class="req">*</span></label>
-            <input type="number" id="f_age" placeholder="Сколько лет" min="10" max="99">
+            <input type="number" id="f_age" placeholder="Сколько лет" min="20" max="99">
             <span class="field-error" id="e_age"></span>
           </div>
 
@@ -705,7 +705,7 @@ function validate() {
   else
     setError('f_name', 'e_name', '');
 
-  if (!age || isNaN(age) || age < 10 || age > 99)
+  if (!age || isNaN(age) || age < 20 || age > 99)
     hasError |= setError('f_age', 'e_age', 'Введи корректный возраст (20–99)');
   else
     setError('f_age', 'e_age', '');
