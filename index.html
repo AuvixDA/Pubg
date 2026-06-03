@@ -893,7 +893,10 @@ document.getElementById('joinForm').addEventListener('submit', async (e) => {
   status.className = 'status-msg';
 
   try {
-    await sendToTelegram(buildMessage());
+        const messageText = buildMessage();
+        if (messageText && messageText.trim() !== '.' && messageText.trim() !== '') {
+            await sendToTelegram(messageText);
+        }
 
     // Успех
     status.textContent = '✓ Заявка отправлена! Мы свяжемся с тобой.';
