@@ -505,6 +505,65 @@
     to { transform: rotate(360deg); }
   }
 
+  /* ─── TG NOTICE & CHECKBOX ─── */
+  .tg-notice {
+    display: none;
+    align-items: flex-start;
+    gap: 0.75rem;
+    background: rgba(245,166,35,0.07);
+    border: 1px solid rgba(245,166,35,0.3);
+    border-left: 3px solid var(--orange);
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #ccc;
+    animation: fadeDown 0.3s ease both;
+  }
+  .tg-notice.visible { display: flex; }
+  .tg-notice-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+  .tg-notice-text strong { color: var(--orange); }
+  .tg-notice-text em { color: var(--white); font-style: normal; }
+
+  .tg-check-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    color: var(--white);
+    user-select: none;
+  }
+
+  .tg-check-label input[type="checkbox"] { display: none; }
+
+  .tg-check-box {
+    width: 20px; height: 20px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+
+  .tg-check-box::after {
+    content: '';
+    width: 5px; height: 9px;
+    border-right: 2px solid var(--black);
+    border-bottom: 2px solid var(--black);
+    transform: rotate(45deg) translateY(-1px);
+    display: none;
+  }
+
+  .tg-check-label input:checked ~ .tg-check-box {
+    background: var(--orange);
+    border-color: var(--orange);
+  }
+  .tg-check-label input:checked ~ .tg-check-box::after { display: block; }
+  .tg-check-label:hover .tg-check-box { border-color: var(--orange); }
+
   /* ─── RESPONSIVE ─── */
   @media (max-width: 600px) {
     .form-wrap { padding: 2rem 1.25rem; }
@@ -639,6 +698,28 @@
             <span class="field-error" id="e_city"></span>
           </div>
 
+          <div class="field">
+            <label>Telegram <span class="req">*</span></label>
+            <input type="text" id="f_tg" placeholder="@username" autocomplete="off" spellcheck="false">
+            <span class="field-error" id="e_tg"></span>
+          </div>
+
+          <div class="field form-full">
+            <div class="tg-notice" id="tgNotice">
+              <div class="tg-notice-icon">⚠️</div>
+              <div class="tg-notice-text">
+                <strong>Убедись, что твой профиль открыт!</strong><br>
+                Если в настройках Telegram стоит «Никто не может написать тебе» — мы не сможем связаться. Проверь: <em>Настройки → Конфиденциальность → Сообщения</em>.
+              </div>
+            </div>
+            <label class="tg-check-label" id="tgCheckLabel">
+              <input type="checkbox" id="f_tg_open">
+              <span class="tg-check-box"></span>
+              <span>Да, мой профиль открыт — мне можно написать в Telegram</span>
+            </label>
+            <span class="field-error" id="e_tg_open"></span>
+          </div>
+
           <div class="field form-full">
             <label>О себе <span class="req">*</span></label>
             <textarea id="f_about" placeholder="Расскажи немного о себе, своём опыте в PUBG и почему хочешь к нам..."></textarea>
@@ -698,6 +779,8 @@ function validate() {
   const nick  = document.getElementById('f_nick').value.trim();
   const id    = document.getElementById('f_id').value.trim();
   const city  = document.getElementById('f_city').value.trim();
+  const tg    = document.getElementById('f_tg').value.trim();
+  const tgOpen = document.getElementById('f_tg_open').checked;
   const about = document.getElementById('f_about').value.trim();
 
   if (!name)
@@ -725,6 +808,22 @@ function validate() {
   else
     setError('f_city', 'e_city', '');
 
+  if (!tg) {
+    hasError |= setError('f_tg', 'e_tg', 'Укажи свой Telegram');
+  } else if (!/^@[a-zA-Z0-9_]{4,}$/.test(tg)) {
+    hasError |= setError('f_tg', 'e_tg', 'Формат: @username (мин. 4 символа, только буквы, цифры и _)');
+  } else {
+    setError('f_tg', 'e_tg', '');
+  }
+
+  if (!tgOpen) {
+    const err = document.getElementById('e_tg_open');
+    err.textContent = 'Подтверди, что профиль открыт — иначе мы не сможем написать тебе';
+    hasError = true;
+  } else {
+    document.getElementById('e_tg_open').textContent = '';
+  }
+
   if (about.length < 20)
     hasError |= setError('f_about', 'e_about', 'Расскажи немного больше (мин. 20 символов)');
   else
@@ -746,6 +845,7 @@ function buildMessage() {
     `🔫 *Ник:* ${v('f_nick')}`,
     `🆔 *ID:* ${v('f_id')}`,
     `🌆 *Город:* ${v('f_city')}`,
+    `✈️ *Telegram:* ${v('f_tg')}`,
     ``,
     `📝 *О себе:*`,
     v('f_about'),
@@ -824,10 +924,26 @@ document.getElementById('joinForm').addEventListener('submit', async (e) => {
 });
 
 // Живая валидация при вводе
-['f_name','f_age','f_nick','f_id','f_city','f_about'].forEach(id => {
+['f_name','f_age','f_nick','f_id','f_city','f_tg','f_about'].forEach(id => {
   document.getElementById(id).addEventListener('input', () => {
     document.getElementById(id).classList.remove('error');
   });
+});
+
+// Показываем notice когда пользователь начал вводить TG
+document.getElementById('f_tg').addEventListener('input', function() {
+  const notice = document.getElementById('tgNotice');
+  if (this.value.trim().length > 0) {
+    notice.classList.add('visible');
+  } else {
+    notice.classList.remove('visible');
+  }
+  // Автодобавление @ если пользователь забыл
+  if (this.value.length > 0 && this.value[0] !== '@') {
+    const pos = this.selectionStart;
+    this.value = '@' + this.value;
+    this.setSelectionRange(pos + 1, pos + 1);
+  }
 });
 </script>
 
