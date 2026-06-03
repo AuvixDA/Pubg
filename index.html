@@ -706,7 +706,7 @@ function validate() {
     setError('f_name', 'e_name', '');
 
   if (!age || isNaN(age) || age < 10 || age > 99)
-    hasError |= setError('f_age', 'e_age', 'Введи корректный возраст (18–99)');
+    hasError |= setError('f_age', 'e_age', 'Введи корректный возраст (20–99)');
   else
     setError('f_age', 'e_age', '');
 
