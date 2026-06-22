@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TempesT — PUBG Mobile Clan</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --dark: #111111;
+    --card: #161616;
+    --border: #1e1e1e;
+    --orange: #f5a623;
+    --orange-glow: #ff8c00;
+    --yellow: #ffe033;
+    --white: #f0ece4;
+    --muted: #888;
+    --danger: #e63c3c;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px;
+    line-height: 1.5;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.6;
+  }
+
+  /* ─── SCANLINES ─── */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  /* ─── HEADER / HERO ─── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(245,166,35,0.12) 0%, transparent 70%),
+      var(--black);
+  }
+
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(245,166,35,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,166,35,0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  }
+
+  .hero-badge {
+    display: inline-block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--orange);
+    border: 1px solid rgba(245,166,35,0.4);
+    padding: 0.3em 1em;
+    margin-bottom: 1.5rem;
+    animation: fadeDown 0.8s ease both;
+  }
+
+  .hero-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: clamp(4rem, 14vw, 11rem);
+    line-height: 0.9;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    animation: fadeDown 0.8s 0.15s ease both;
+  }
+
+  .hero-title .accent { color: var(--orange); }
+
+  .hero-title .stroke {
+    -webkit-text-stroke: 2px var(--orange);
+    color: transparent;
+  }
+
+  .hero-sub {
+    font-size: clamp(1rem, 3vw, 1.4rem);
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 1.2rem;
+    animation: fadeDown 0.8s 0.3s ease both;
+  }
+
+  .hero-cta {
+    margin-top: 2.5rem;
+    display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+    animation: fadeDown 0.8s 0.45s ease both;
+  }
+
+  .btn {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.9em 2.2em;
+    border: none;
+    cursor: crosshair;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary {
+    background: var(--orange);
+    color: var(--black);
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+
+  .btn-primary::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%);
+    transform: translateX(-100%);
+    transition: transform 0.4s;
+  }
+
+  .btn-primary:hover::after { transform: translateX(100%); }
+  .btn-primary:hover { background: var(--yellow); }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--white);
+    border: 1px solid rgba(255,255,255,0.2);
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+  .btn-outline:hover { border-color: var(--orange); color: var(--orange); }
+
+  .hero-scroll {
+    position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+    color: var(--muted); font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+    animation: bounce 2s infinite;
+  }
+
+  .hero-scroll::before {
+    content: '';
+    width: 1px; height: 40px;
+    background: linear-gradient(var(--orange), transparent);
+    display: block;
+  }
+
+  /* ─── SECTION LAYOUT ─── */
+  section { padding: 6rem 1.5rem; position: relative; }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 0.5rem;
+  }
+
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: clamp(2.2rem, 6vw, 4rem);
+    text-transform: uppercase;
+    line-height: 1;
+    margin-bottom: 3rem;
+  }
+
+  /* ─── RULES SECTION ─── */
+  .rules-section {
+    background:
+      linear-gradient(180deg, transparent, rgba(245,166,35,0.03) 50%, transparent),
+      var(--dark);
+  }
+
+  .rules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 3rem;
+  }
+
+  .rule-card {
+    background: var(--card);
+    padding: 2.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+
+  .rule-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--orange), transparent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s;
+  }
+
+  .rule-card:hover { background: #1a1a1a; }
+  .rule-card:hover::before { transform: scaleX(1); }
+
+  .rule-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 4rem;
+    font-weight: 900;
+    color: rgba(245,166,35,0.08);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    transition: color 0.3s;
+  }
+
+  .rule-card:hover .rule-num { color: rgba(245,166,35,0.18); }
+
+  .rule-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 0.75rem;
+  }
+
+  .rule-text { color: #aaa; line-height: 1.7; }
+
+  /* ─── FORM SECTION ─── */
+  .form-section {
+    background: var(--black);
+  }
+
+  .form-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 3rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .form-wrap::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--orange), var(--yellow), var(--orange));
+    background-size: 200%;
+    animation: shimmer 3s linear infinite;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-full { grid-column: 1 / -1; }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  label .req { color: var(--orange); margin-left: 2px; }
+
+  input, textarea {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    padding: 0.8rem 1rem;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    width: 100%;
+    -webkit-appearance: none;
+  }
+
+  input:focus, textarea:focus {
+    border-color: var(--orange);
+    background: rgba(245,166,35,0.04);
+    box-shadow: 0 0 0 3px rgba(245,166,35,0.08);
+  }
+
+  input.error, textarea.error {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgba(230,60,60,0.1);
+  }
+
+  textarea { resize: vertical; min-height: 120px; }
+
+  .field-error {
+    font-size: 0.75rem;
+    color: var(--danger);
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.05em;
+    height: 1em;
+    transition: opacity 0.2s;
+  }
+
+  .submit-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+
+  .btn-submit {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 1em 3em;
+    background: var(--orange);
+    color: var(--black);
+    border: none;
+    cursor: crosshair;
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+    transition: background 0.2s, transform 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-submit::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%);
+    transform: translateX(-100%);
+    transition: transform 0.5s;
+  }
+
+  .btn-submit:hover::after { transform: translateX(100%); }
+  .btn-submit:hover { background: var(--yellow); }
+  .btn-submit:active { transform: scale(0.98); }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Spinner */
+  .spinner {
+    display: none;
+    width: 18px; height: 18px;
+    border: 2px solid rgba(0,0,0,0.3);
+    border-top-color: var(--black);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  .btn-submit.loading .spinner { display: inline-block; }
+  .btn-submit.loading .btn-text { opacity: 0.6; }
+
+  /* Status messages */
+  .status-msg {
+    display: none;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.7em 1.2em;
+    border-left: 3px solid;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .status-msg.show { display: block; }
+  .status-msg.success { color: #4dbb5f; border-color: #4dbb5f; background: rgba(77,187,95,0.06); }
+  .status-msg.error   { color: var(--danger); border-color: var(--danger); background: rgba(230,60,60,0.06); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    background: var(--dark);
+    border-top: 1px solid var(--border);
+    padding: 3rem 1.5rem;
+    text-align: center;
+  }
+
+  .footer-logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 2rem;
+    text-transform: uppercase;
+    color: var(--orange);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+
+  .footer-tagline {
+    color: var(--muted);
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+  }
+
+  .social-links {
+    display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  .social-link {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 0.5em 1.2em;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .social-link:hover { color: var(--orange); border-color: var(--orange); }
+
+  .footer-copy {
+    color: #333;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ─── DIVIDER ─── */
+  .divider {
+    width: 60px; height: 2px;
+    background: linear-gradient(90deg, var(--orange), transparent);
+    margin-bottom: 1.5rem;
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50%       { transform: translateX(-50%) translateY(6px); }
+  }
+
+  @keyframes shimmer {
+    0%   { background-position: 200% center; }
+    100% { background-position: -200% center; }
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ─── TG NOTICE & CHECKBOX ─── */
+  .tg-notice {
+    display: none;
+    align-items: flex-start;
+    gap: 0.75rem;
+    background: rgba(245,166,35,0.07);
+    border: 1px solid rgba(245,166,35,0.3);
+    border-left: 3px solid var(--orange);
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #ccc;
+    animation: fadeDown 0.3s ease both;
+  }
+  .tg-notice.visible { display: flex; }
+  .tg-notice-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+  .tg-notice-text strong { color: var(--orange); }
+  .tg-notice-text em { color: var(--white); font-style: normal; }
+
+  .tg-check-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    color: var(--white);
+    user-select: none;
+  }
+
+  .tg-check-label input[type="checkbox"] { display: none; }
+
+  .tg-check-box {
+    width: 20px; height: 20px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+
+  .tg-check-box::after {
+    content: '';
+    width: 5px; height: 9px;
+    border-right: 2px solid var(--black);
+    border-bottom: 2px solid var(--black);
+    transform: rotate(45deg) translateY(-1px);
+    display: none;
+  }
+
+  .tg-check-label input:checked ~ .tg-check-box {
+    background: var(--orange);
+    border-color: var(--orange);
+  }
+  .tg-check-label input:checked ~ .tg-check-box::after { display: block; }
+  .tg-check-label:hover .tg-check-box { border-color: var(--orange); }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 600px) {
+    .form-wrap { padding: 2rem 1.25rem; }
+    .form-grid { grid-template-columns: 1fr; }
+    .submit-row { flex-direction: column; align-items: stretch; }
+    .btn-submit { text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero" id="home">
+  <div class="hero-grid"></div>
+  <span class="hero-badge">⬡ PUBG Mobile · Открыт набор в основной состав</span>
+  <h1 class="hero-title">
+    <span class="accent">TempesT</span><br>
+  </h1>
+  <p class="hero-sub">Создаём бурю, а не прячемся от неё.</p>
+  <div class="hero-cta">
+    <a href="#join" class="btn btn-primary">Подать заявку</a>
+    <a href="#about" class="btn btn-outline">О клане</a>
+  </div>
+  <div class="hero-scroll">SCROLL</div>
+</section>
+
+<!-- ═══════════════ ABOUT ═══════════════ -->
+<section class="rules-section" id="about">
+  <div class="container">
+    <p class="section-label">О клане</p>
+    <h2 class="section-title">Не просто тег<br><span style="color:var(--orange)">для ника</span></h2>
+
+    <p style="color:#aaa; font-size:1.1rem; line-height:1.8; max-width:680px; margin-bottom:3rem;">
+      Ищешь не просто клан, а настоящую команду, где каждый играет свою роль, растёт и двигается к цели?
+      <strong style="color:var(--white)">Добро пожаловать в TempesT</strong> — место, где собираются сильные, активные и заряженные игроки.<br><br>
+      У нас не про «зашёл раз в неделю и пропал». У нас про стиль, дисциплину, поддержку и атмосферу настоящей игровой семьи.
+    </p>
+
+    <div class="rules-grid">
+      <div class="rule-card">
+        <div class="rule-num">GAME</div>
+        <div class="rule-title">🎮 Постоянные катки</div>
+        <p class="rule-text">Активный онлайн, живой чат и общение с сокланами. Здесь всегда есть с кем зайти на игру.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">CONTENT</div>
+        <div class="rule-title">🎬 Контент и съёмки</div>
+        <p class="rule-text">Совместные клановые съёмки, хайлайты и контент. Твои лучшие моменты не останутся незамеченными.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">LEVEL UP</div>
+        <div class="rule-title">📈 Рост и развитие</div>
+        <p class="rule-text">Командная игра, развитие и участие в движухе клана. Здесь тебя заметят, поддержат и дадут возможность стать частью чего-то большего.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">TEAM</div>
+        <div class="rule-title">🔥 Настоящая команда</div>
+        <p class="rule-text">Люди, которые играют не ради галочки, а ради результата и кайфа. Каждый участник здесь важен.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ REQUIREMENTS ═══════════════ -->
+<section id="rules" style="padding: 6rem 1.5rem; background: var(--black);">
+  <div class="container">
+    <p class="section-label">Требования</p>
+    <h2 class="section-title">Кого мы<br><span style="color:var(--orange)">ждём</span></h2>
+
+    <div class="rules-grid">
+      <div class="rule-card">
+        <div class="rule-num">✓</div>
+        <div class="rule-title">👤 Возраст 20+</div>
+        <p class="rule-text">Мы строим зрелую и ответственную команду. Ждём тех, кто умеет держать слово и уважает других.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">✓</div>
+        <div class="rule-title">⚡ Активность</div>
+        <p class="rule-text">Активность в игре и в клановом чате. Обязательное участие в клановых съёмках — это важно для развития клана.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">✓</div>
+        <div class="rule-title">🛡 Адекватность</div>
+        <p class="rule-text">Адекватность, ответственность и желание быть частью команды. Без конфликтов и хаоса — только уважение.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">✓</div>
+        <div class="rule-title">🏆 Результат</div>
+        <p class="rule-text">Желание расти, побеждать и создавать атмосферу. TempesT — это семья, где каждый движется к общей цели.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ JOIN FORM ═══════════════ -->
+<section class="form-section" id="join">
+  <div class="container">
+    <p class="section-label">Подать заявку</p>
+    <p style="color:#aaa; margin-bottom:2.5rem; line-height:1.7;">Заполни форму — и мы свяжемся с тобой. <strong style="color:var(--orange)">TempesT ждёт тех, кто создаёт бурю.</strong></p>
+
+    <div class="form-wrap">
+      <form id="joinForm" novalidate>
+        <div class="form-grid">
+
+          <div class="field">
+            <label>Имя <span class="req">*</span></label>
+            <input type="text" id="f_name" placeholder="Твоё имя">
+            <span class="field-error" id="e_name"></span>
+          </div>
+
+          <div class="field">
+            <label>Возраст <span class="req">*</span></label>
+            <input type="number" id="f_age" placeholder="Сколько лет" min="20" max="99">
+            <span class="field-error" id="e_age"></span>
+          </div>
+
+          <div class="field">
+            <label>Ник в игре <span class="req">*</span></label>
+            <input type="text" id="f_nick" placeholder="Твой ник">
+            <span class="field-error" id="e_nick"></span>
+          </div>
+
+          <div class="field">
+            <label>ID в игре <span class="req">*</span></label>
+            <input type="text" id="f_id" placeholder="Только цифры" inputmode="numeric">
+            <span class="field-error" id="e_id"></span>
+          </div>
+
+          <div class="field">
+            <label>Город <span class="req">*</span></label>
+            <input type="text" id="f_city" placeholder="Откуда ты">
+            <span class="field-error" id="e_city"></span>
+          </div>
+
+          <div class="field">
+            <label>Telegram <span class="req">*</span></label>
+            <input type="text" id="f_tg" placeholder="@username" autocomplete="off" spellcheck="false">
+            <span class="field-error" id="e_tg"></span>
+          </div>
+
+          <div class="field form-full">
+            <div class="tg-notice" id="tgNotice">
+              <div class="tg-notice-icon">⚠️</div>
+              <div class="tg-notice-text">
+                <strong>Убедись, что твой профиль открыт!</strong><br>
+                Если в настройках Telegram стоит «Никто не может написать тебе» — мы не сможем связаться. Проверь: <em>Настройки → Конфиденциальность → Сообщения</em>.
+              </div>
+            </div>
+            <label class="tg-check-label" id="tgCheckLabel">
+              <input type="checkbox" id="f_tg_open">
+              <span class="tg-check-box"></span>
+              <span>Да, мой профиль открыт — мне можно написать в Telegram</span>
+            </label>
+            <span class="field-error" id="e_tg_open"></span>
+          </div>
+
+          <div class="field form-full">
+            <label>О себе <span class="req">*</span></label>
+            <textarea id="f_about" placeholder="Расскажи немного о себе, своём опыте в PUBG и почему хочешь к нам..."></textarea>
+            <span class="field-error" id="e_about"></span>
+          </div>
+
+        </div>
+
+        <div class="submit-row">
+          <button type="submit" class="btn-submit" id="submitBtn">
+            <span class="spinner"></span>
+            <span class="btn-text">Отправить заявку</span>
+          </button>
+          <span class="status-msg" id="statusMsg"></span>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  <div class="footer-logo">TempesT</div>
+  <div class="footer-tagline">Не просто клан — стихия, которую не остановить</div>
+
+  <p class="footer-copy">© 2026 TempesT</p></footer>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  НАСТРОЙКИ — ЗАМЕНИ НА СВОИ ДАННЫЕ
+// ═══════════════════════════════════════════════════════
+const TELEGRAM_TOKEN   = '8602855151:AAH0Ai-og-0ZqKlgR7dGCYbxoMKbJx0Ehfw';
+const TELEGRAM_CHAT_ID = '-1003998726410';
+
+// ═══════════════════════════════════════════════════════
+//  ВАЛИДАЦИЯ
+// ═══════════════════════════════════════════════════════
+function setError(fieldId, errId, msg) {
+  const field = document.getElementById(fieldId);
+  const err   = document.getElementById(errId);
+  if (msg) {
+    field.classList.add('error');
+    err.textContent = msg;
+  } else {
+    field.classList.remove('error');
+    err.textContent = '';
+  }
+  return !!msg;
+}
+
+function validate() {
+  let hasError = false;
+
+  const name  = document.getElementById('f_name').value.trim();
+  const age   = document.getElementById('f_age').value.trim();
+  const nick  = document.getElementById('f_nick').value.trim();
+  const id    = document.getElementById('f_id').value.trim();
+  const city  = document.getElementById('f_city').value.trim();
+  const tg    = document.getElementById('f_tg').value.trim();
+  const tgOpen = document.getElementById('f_tg_open').checked;
+  const about = document.getElementById('f_about').value.trim();
+
+  if (!name)
+    hasError |= setError('f_name', 'e_name', 'Введи своё имя');
+  else
+    setError('f_name', 'e_name', '');
+
+  if (!age || isNaN(age) || age < 20 || age > 99)
+    hasError |= setError('f_age', 'e_age', 'Введи корректный возраст (20–99)');
+  else
+    setError('f_age', 'e_age', '');
+
+  if (!nick)
+    hasError |= setError('f_nick', 'e_nick', 'Введи ник в игре');
+  else
+    setError('f_nick', 'e_nick', '');
+
+  if (!id || !/^\d+$/.test(id))
+    hasError |= setError('f_id', 'e_id', 'ID должен состоять только из цифр');
+  else
+    setError('f_id', 'e_id', '');
+
+  if (!city)
+    hasError |= setError('f_city', 'e_city', 'Укажи свой город');
+  else
+    setError('f_city', 'e_city', '');
+
+  if (!tg) {
+    hasError |= setError('f_tg', 'e_tg', 'Укажи свой Telegram');
+  } else if (!/^@[a-zA-Z0-9_]{4,}$/.test(tg)) {
+    hasError |= setError('f_tg', 'e_tg', 'Формат: @username (мин. 4 символа, только буквы, цифры и _)');
+  } else {
+    setError('f_tg', 'e_tg', '');
+  }
+
+  if (!tgOpen) {
+    const err = document.getElementById('e_tg_open');
+    err.textContent = 'Подтверди, что профиль открыт — иначе мы не сможем написать тебе';
+    hasError = true;
+  } else {
+    document.getElementById('e_tg_open').textContent = '';
+  }
+
+  if (about.length < 20)
+    hasError |= setError('f_about', 'e_about', 'Расскажи немного больше (мин. 20 символов)');
+  else
+    setError('f_about', 'e_about', '');
+
+  return !hasError;
+}
+
+// ═══════════════════════════════════════════════════════
+//  ФОРМАТИРОВАНИЕ СООБЩЕНИЯ
+// ═══════════════════════════════════════════════════════
+function buildMessage() {
+  const v = id => document.getElementById(id).value.trim();
+  return [
+    `🎮 *Новая заявка в клан TempesT*`,
+    ``,
+    `👤 *Имя:* ${v('f_name')}`,
+    `🎂 *Возраст:* ${v('f_age')} лет`,
+    `🔫 *Ник:* ${v('f_nick')}`,
+    `🆔 *ID:* ${v('f_id')}`,
+    `🌆 *Город:* ${v('f_city')}`,
+    `✈️ *Telegram:* ${v('f_tg')}`,
+    ``,
+    `📝 *О себе:*`,
+    v('f_about'),
+    ``,
+    `⏱ ${new Date().toLocaleString('ru-RU')}`
+  ].join('\n');
+}
+
+// ═══════════════════════════════════════════════════════
+//  ОТПРАВКА В TELEGRAM
+// ═══════════════════════════════════════════════════════
+async function sendToTelegram(text) {
+  const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id:    TELEGRAM_CHAT_ID,
+        text:       text,
+        parse_mode: 'Markdown'
+      }),
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.description || 'Telegram API error');
+    }
+    return res.json();
+    
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('Превышено время ожидания (15 сек)');
+    }
+    throw err;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  ОБРАБОТЧИК ФОРМЫ
+// ═══════════════════════════════════════════════════════
+document.getElementById('joinForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  if (!validate()) return;
+
+  const btn    = document.getElementById('submitBtn');
+  const status = document.getElementById('statusMsg');
+
+  // Начало загрузки
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.querySelector('.btn-text').textContent = 'Отправляем...';
+  status.className = 'status-msg';
+
+  try {
+    const messageText = buildMessage();
+    
+    if (!messageText || !messageText.trim()) {
+      throw new Error('Ошибка формирования сообщения');
+    }
+    
+    await sendToTelegram(messageText);
+
+    // Успех
+    status.textContent = '✓ Заявка отправлена! Мы свяжемся с тобой.';
+    status.className   = 'status-msg success show';
+    btn.querySelector('.btn-text').textContent = '✓ Отправлено';
+    btn.style.background = '#4dbb5f';
+
+    // Очищаем форму
+    document.getElementById('joinForm').reset();
+
+    // Через 5 сек возвращаем кнопку
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      btn.querySelector('.btn-text').textContent = 'Отправить заявку';
+      btn.style.background = '';
+      status.textContent = '';
+      status.className = 'status-msg';
+    }, 5000);
+
+  } catch (err) {
+    // Ошибка
+    console.error('Telegram error:', err);
+    
+    let errorMsg = '✗ Ошибка отправки. Попробуй ещё раз.';
+    
+    if (err.message.includes('CORS') || err.message.includes('Failed to fetch')) {
+      errorMsg = '✗ Технические проблемы. Напишите администратору.';
+    } else if (err.message.includes('timeout')) {
+      errorMsg = '✗ Отправка заняла слишком долго.';
+    }
+    
+    status.textContent = errorMsg;
+    status.className   = 'status-msg error show';
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    btn.querySelector('.btn-text').textContent = 'Отправить заявку';
+    
+    setTimeout(() => {
+      status.textContent = '';
+      status.className = 'status-msg';
+    }, 5000);
+  }
+});
+
+// Живая валидация при вводе
+['f_name','f_age','f_nick','f_id','f_city','f_tg','f_about'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    document.getElementById(id).classList.remove('error');
+  });
+});
+
+// Показываем notice когда пользователь начал вводить TG
+document.getElementById('f_tg').addEventListener('input', function() {
+  const notice = document.getElementById('tgNotice');
+  if (this.value.trim().length > 0) {
+    notice.classList.add('visible');
+  } else {
+    notice.classList.remove('visible');
+  }
+  // Автодобавление @ если пользователь забыл
+  if (this.value.length > 0 && this.value[0] !== '@') {
+    const pos = this.selectionStart;
+    this.value = '@' + this.value;
+    this.setSelectionRange(pos + 1, pos + 1);
+  }
+});
+</script>
+
+</body>
+</html>
